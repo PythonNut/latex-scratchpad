@@ -22,6 +22,9 @@ class App extends Component {
     switch (parse.type) {
     case 'TeXRaw':
       return parse.text;
+    case 0:
+      let sym_args = this.parseassembler(parse.arguments);
+      return `${parse.symbol}${sym_args}`;
     case 'TeXEnv':
       let contents = this.parseassembler(parse.latex);
       return `\\begin{${parse.name}}${contents}\\end{${parse.name}}`;
