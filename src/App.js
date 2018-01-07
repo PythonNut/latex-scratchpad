@@ -42,54 +42,56 @@ class App extends Component {
   }
   
   handleChange(event) {
-    this.setState({value: event.target.value});
     var parse = latexParser.parse(event.target.value);
-    this.parse = '';
-
     var environment = false;
-    var environment_type = '';
     var environment_contents = [];
-    var content;
+
+    this.setState({value: event.target.value});
+    this.parse = '';
+    this.text = '';
 
     if (isOk(parse)) {
       this.math = [];
-      for (var i in parse.value) {
+      for (let item of parse.value) {
         if (environment) {
-          if (parse.value[i].type == "TeXComm" && parse.value[i].name == "]" && environment_type == '') {
+          if (item.type == "TeXComm" && item.name == "]") {
+            let content = environment_contents.join('');
+            this.math.push(
+                <MathJax.Node>{content}</MathJax.Node>
+            );
+            this.text += `\\[${content}\\]`;
             environment = false;
-            content = environment_contents.join('\n')
-            this.math.push(
-              <MathJax.Node>{content}</MathJax.Node>
-            );
-          }
-          environment_contents.push(this.parseassembler(parse.value[i]))
-          continue
-        }
-        if (parse.value[i].type == "Dollar" && "latex" in parse.value[i]) {
-          content = this.parseassembler(parse.value[i].latex)
-          this.math.push(
-            <MathJax.Node inline>{content}</MathJax.Node>
-          )
-        } else {
-          if (parse.value[i].type == "TeXComm" && parse.value[i].name == "[") {
-            environment = true;
-            environment_type = '';
-            environment_contents = [];
-          }
-          else if (parse.value[i].type == "TeXEnv") {
-            environment = true;
-            environment_type = parse.value[i].name;
-            environment_contents = [];
-            content = this.parseassembler(parse.value[i])
-            this.math.push(
-              <MathJax.Node>{content}</MathJax.Node>
-            );
           }
           else {
-            this.math.push(this.parseassembler(parse.value[i]) + '\n');
+            environment_contents.push(this.parseassembler(item));
           }
         }
-        this.parse += JSON.stringify(parse.value[i]) + "\n";
+        else if (item.type == "Dollar") {
+          let content = this.parseassembler(item.latex);
+          this.math.push(
+              <MathJax.Node inline>{content}</MathJax.Node>
+          );
+          this.text += `\$${content}\$`;
+        }
+        else if (item.type == "TeXComm" && item.name == "[") {
+          environment = true;
+          environment_contents = [];
+        }
+        else if (item.type == "TeXEnv") {
+          let content = this.parseassembler(item);
+          this.math.push(
+              <MathJax.Node>{content}</MathJax.Node>
+          );
+          this.text += content;
+          environment = true;
+          environment_contents = [];
+        }
+        else {
+          let content = this.parseassembler(item);
+          this.math.push(content);
+          this.text += content;
+        }
+        this.parse += JSON.stringify(item) + "\n";
       }
     }
   }
@@ -99,11 +101,11 @@ class App extends Component {
       <React.Fragment>
         <textarea value={this.state.value} onChange={this.handleChange} />
         <MathJax.Context input='tex'>
-        <div>
-          {this.math}
-        </div>
+          <div>
+            {this.math}
+          </div>
         </MathJax.Context>
-        </React.Fragment>
+      </React.Fragment>
     );
   }
 }
