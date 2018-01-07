@@ -6,11 +6,6 @@ import {latexParser, isOk} from "latex-parser";
 class App extends Component {
   constructor(props) {
     super(props);
-    this.socket = new WebSocket('ws://localhost:9998');
-    this.socket.onmessage = (event) => {
-      this.setState({value: event.data});
-      console.log(event.data);
-    };
     this.state = {value: ''};
     this.handleChange = this.handleChange.bind(this);
 
@@ -45,7 +40,6 @@ class App extends Component {
   
   handleChange(event) {
     this.setState({value: event.target.value});
-    this.socket.send(event.target.value);
     var parse = latexParser.parse(event.target.value);
     this.parse = '';
 
