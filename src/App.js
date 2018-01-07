@@ -96,17 +96,14 @@ class App extends Component {
 
   render() {
     return (
-      <div>
-          <textarea value={this.state.value} onChange={this.handleChange} />
-        <pre>
-        {this.parse}
-        </pre>
+      <React.Fragment>
+        <textarea value={this.state.value} onChange={this.handleChange} />
         <MathJax.Context input='tex'>
         <div>
           {this.math}
         </div>
         </MathJax.Context>
-        </div>
+        </React.Fragment>
     );
   }
 }
