@@ -20,56 +20,27 @@ class App extends Component {
   }
   
   parseassembler(parse) {
-    var text = '';
     if (Array.isArray(parse)) {
-      text = '{';
-      for (var i in parse) {
-        text += this.parseassembler(parse[i]);
-      }
-      text += '}';
-      return text;
+      return parse.map(this.parseassembler, this).join('');
     }
     
     switch (parse.type) {
-    case 'TeXEnv':
-      text = '\\begin{' + parse.name + '}';
-      for (var i in parse.latex) {
-        text += this.parseassembler(parse.latex[i]);
-      }
-      text += '\\end{' + parse.name + '}';
-      break;
     case 'TeXRaw':
-      text = parse.text;
-      break;
+      return parse.text;
+    case 'TeXEnv':
+      let contents = this.parseassembler(parse.latex);
+      return `\\begin{${parse.name}}${contents}\\end{${parse.name}}`;
     case 'TeXComm':
-      text = '\\' + parse.name;
-      for (var i in parse.arguments) {
-        text += this.parseassembler(parse.arguments[i]);
-      }
-      break;
+      let args = this.parseassembler(parse.arguments);
+      return `\\${parse.name}${args}`;
     case 'FixArg':
-      text = '{';
-      for (var i in parse.latex) {
-        text += this.parseassembler(parse.latex[i]);
-      }
-      text += '}';
-      break;
+      return `{${this.parseassembler(parse.latex)}}`;
     case 'OptArg':
-      text = '[';
-      for (var i in parse.latex) {
-        text += this.parseassembler(parse.latex[i]);
-      }
-      text += ']';
-      break;
-    case 'Dollar':
-      text = '$';
-      for (var i in parse.latex) {
-        text += this.parseassembler(parse.latex[i]);
-      }
-      text += '$';
-      break;
+      return `[${this.parseassembler(parse.latex)}]`;
+    default:
+      console.error("Encountered unknown parse element: ", parse);
+      return '';
     }
-    return text;
   }
   
   handleChange(event) {
