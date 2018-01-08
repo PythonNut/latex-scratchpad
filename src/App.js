@@ -2,16 +2,23 @@ import './App.css';
 import React, { Component } from 'react';
 import MathJax from '@pythonnut/react-mathjax';
 import {latexParser, isOk} from "latex-parser";
+import AceEditor from 'react-ace';
+
+import 'brace/mode/latex';
+import 'brace/theme/solarized_dark';
+import 'brace/snippets/latex';
+import 'brace/ext/language_tools';
 
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {value: ''};
+    this.state = {
+      value: '',
+      math: '',
+      parse: '',
+      text: ''
+    };
     this.handleChange = this.handleChange.bind(this);
-
-    this.parse = "";
-    this.text = "";
-    this.math = "";
   }
   
   parseassembler(parse) {
@@ -42,21 +49,21 @@ class App extends Component {
   }
   
   handleChange(event) {
-    var parse = latexParser.parse(event.target.value);
+    var latex_parse = latexParser.parse(event);
     var environment = false;
     var environment_contents = [];
 
-    this.setState({value: event.target.value});
-    this.parse = '';
-    this.text = '';
+    this.setState({value: event});
 
-    if (isOk(parse)) {
-      this.math = [];
-      for (let item of parse.value) {
+    if (isOk(latex_parse)) {
+      let math = [];
+      let parse = [];
+      let text = '';
+      for (let item of latex_parse.value) {
         if (environment) {
           if (item.type == "TeXComm" && item.name == "]") {
             let content = environment_contents.join('');
-            this.math.push(
+            math.push(
                 <MathJax.Node>{content}</MathJax.Node>
             );
             this.text += `\\[${content}\\]`;
@@ -68,7 +75,7 @@ class App extends Component {
         }
         else if (item.type == "Dollar") {
           let content = this.parseassembler(item.latex);
-          this.math.push(
+          math.push(
               <MathJax.Node inline>{content}</MathJax.Node>
           );
           this.text += `\$${content}\$`;
@@ -79,7 +86,7 @@ class App extends Component {
         }
         else if (item.type == "TeXEnv") {
           let content = this.parseassembler(item);
-          this.math.push(
+          math.push(
               <MathJax.Node>{content}</MathJax.Node>
           );
           this.text += content;
@@ -88,21 +95,38 @@ class App extends Component {
         }
         else {
           let content = this.parseassembler(item);
-          this.math.push(content);
+          math.push(content);
           this.text += content;
         }
         this.parse += JSON.stringify(item) + "\n";
       }
+      this.setState({
+        math: math,
+        parse: parse,
+        text: text
+      });
     }
   }
 
   render() {
     return (
       <React.Fragment>
-        <textarea value={this.state.value} onChange={this.handleChange} />
+        <AceEditor
+      height=""
+      width=""
+      setOptions={{printMargin: false}}
+      mode="latex"
+      theme="solarized_dark"
+      name="ace_editor"
+          enableBasicAutocompletion={true}
+    enableLiveAutocompletion={true}
+      enableSnippets={true}
+      value={this.state.value}
+      onChange={this.handleChange}
+        />
         <MathJax.Context input='tex'>
-          <div>
-            {this.math}
+          <div id="latex_output">
+            {this.state.math}
           </div>
         </MathJax.Context>
       </React.Fragment>

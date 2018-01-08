@@ -7,6 +7,7 @@
     "latex-parser": "^0.6.2",
     "mathjax": "^2.7.2",
     "react": "^16.1.1",
+    "react-ace": "^5.9.0",
     "react-dom": "^16.1.1",
     "react-scripts": "1.0.17"
   },
